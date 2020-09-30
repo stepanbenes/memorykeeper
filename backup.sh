@@ -5,7 +5,12 @@
 
 # set -e # fail on any command error
 
-cd /mnt/c/Projects/memorykeeper-test/backup
+if [ "$1" == "" ]; then
+	echo "missing argument 'BRANCH_NAME'"
+    exit 1
+fi
+
+cd /mnt/c/Projects/memorykeeper-test/backup || exit 1
 
 # https://stackoverflow.com/questions/21151178/shell-script-to-check-if-specified-git-branch-exists
 # test if the branch is in the local repository.
@@ -21,31 +26,32 @@ function is_local_branch() {
     fi
 }
 
-# TODO: copy from remote computer
-# TODO: use exclude-from parameter to unlist directories to sync (e.g. exclude media directory)
-rsync -a --delete --stats /mnt/c/Projects/memorykeeper-test/source/ ./data/
-
-if [ "$1" != "" ]; then
-	BRANCH_NAME="$1"
-else
-	BRANCH_NAME=$(date +"auto-backup/%Y/%m/%d")
-fi
-
 NOW=$(date +"%m-%d-%Y %H:%M:%S")
 echo "creating backup at $NOW"
+
+# TODO: copy from remote computer
+# TODO: use exclude-from parameter to unlist directories to sync (e.g. exclude media directory)
+rsync -a --delete --stats /mnt/c/Projects/memorykeeper-test/source/ ./data/ || exit 1
+
+BRANCH_NAME="$1"
+
+NOW=$(date +"%m-%d-%Y %H:%M:%S")
+echo -e "\narchiving in git repository at $NOW"
 
 BRANCH_EXISTS=$(git show-ref --verify refs/heads/$BRANCH_NAME)
 
 if [ "$BRANCH_EXISTS" != "" ]; then
-	git checkout "$BRANCH_NAME"
+	git checkout "$BRANCH_NAME" || exit 1
 else
-	git checkout -b "$BRANCH_NAME"
+	git checkout -b "$BRANCH_NAME" || exit 1
 fi
 
-git add .
+git add . || exit 1
 
-git commit -a -m "backup at $NOW"
+git commit -a -m "backup at $NOW" || exit 1
 
+NOW=$(date +"%m-%d-%Y %H:%M:%S")
+echo -e "\nbackup completed at $NOW"
 
 # TODO: clear garbage in repo? >>
 # git reflog expire --all --expire=now
