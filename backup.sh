@@ -29,6 +29,8 @@ cd /mnt/sidlo_backup || exit 1
 NOW=$(date +"%m-%d-%Y %H:%M:%S")
 echo "creating backup at $NOW"
 
+# TODO: use rdiff-backup instead. https://opensource.com/life/16/3/turn-your-old-raspberry-pi-automatic-backup-server; https://rdiff-backup.net/;
+
 # TODO: copy from remote computer
 # TODO: use exclude-from parameter to unlist directories to sync (e.g. exclude media directory)
 rsync -a --delete --stats --progress --exclude 'media' /mnt/sidlo_data/ /mnt/sidlo_backup/data/ || exit 1
